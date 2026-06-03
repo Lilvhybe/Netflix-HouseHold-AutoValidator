@@ -1,22 +1,15 @@
-FROM golang:1.26-alpine as builder
-
+FROM golang:1.22-alpine AS builder
 WORKDIR /app
-
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
+RUN go build -o validator ./cmd/main.go
 
-RUN apk add --no-cache upx chromium libstdc++ libx11 libxcomposite libxrandr libxi libxdamage mesa-gl glib ca-certificates && \
-    go build -o netflix-household-autovalidator ./cmd/main.go && \
-    upx --best --lzma netflix-household-autovalidator
+FROM alpine:latest
+RUN apk add --no-cache chromium
+WORKDIR /app
+COPY --from=builder /app/validator .
 
-
-FROM debian:stable-slim
-
-WORKDIR /
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-     chromium wget ca-certificates && \
-     apt-get clean && rm -rf /var/lib/apt/lists/*
-
-COPY --from=builder /app/netflix-household-autovalidator /netflix-household-autovalidator
-
-ENTRYPOINT ["/netflix-household-autovalidator"]
+ENTRYPOINT ["sh", "-c", "\
+echo \"email:\n  imap: \\\"${EMAIL_IMAP}\\\"\n  login: \\\"${EMAIL_LOGIN}\\\"\n  password: \\\"${EMAIL_PASSWORD}\\\"\n  mailbox: \\\"${EMAIL_MAILBOX}\\\"\\ntargetFrom: \\\"${TARGET_FROM}\\\"\\ntargetSubject: \\\"${TARGET_SUBJECT}\\\"\" > /app/config.yaml && \
+./validator"]
