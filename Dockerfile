@@ -11,4 +11,4 @@ RUN apk add --no-cache chromium
 WORKDIR /app
 COPY --from=builder /app/validator .
 
-ENTRYPOINT ["sh", "-c", "echo \"email:\n  imap: \\\"${EMAIL_IMAP}\\\"\n  login: \\\"${EMAIL_LOGIN}\\\"\n  password: \\\"${EMAIL_PASSWORD}\\\"\n  mailbox: \\\"${EMAIL_MAILBOX}\\\"\\ntargetFrom: \\\"${TARGET_FROM}\\\"\\ntargetSubject: \\\"${TARGET_SUBJECT}\\\"\" > /app/config.yaml && ./validator"]
+ENTRYPOINT ["sh", "-c", "printf 'email:\\n  imap: \"%s\"\\n  login: \"%s\"\\n  password: \"%s\"\\n  mailbox: \"%s\"\\ntargetFrom: \"%s\"\\ntargetSubject: \"%s\"\\n' \"$EMAIL_IMAP\" \"$EMAIL_LOGIN\" \"$EMAIL_PASSWORD\" \"$EMAIL_MAILBOX\" \"$TARGET_FROM\" \"$TARGET_SUBJECT\" > /app/config.yaml && exec ./validator"]
