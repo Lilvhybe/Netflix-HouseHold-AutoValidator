@@ -1,4 +1,5 @@
-FROM golang:1.22-alpine AS builder
+FROM golang:alpine AS builder
+RUN apk add --no-cache git
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
@@ -10,6 +11,4 @@ RUN apk add --no-cache chromium
 WORKDIR /app
 COPY --from=builder /app/validator .
 
-ENTRYPOINT ["sh", "-c", "\
-echo \"email:\n  imap: \\\"${EMAIL_IMAP}\\\"\n  login: \\\"${EMAIL_LOGIN}\\\"\n  password: \\\"${EMAIL_PASSWORD}\\\"\n  mailbox: \\\"${EMAIL_MAILBOX}\\\"\\ntargetFrom: \\\"${TARGET_FROM}\\\"\\ntargetSubject: \\\"${TARGET_SUBJECT}\\\"\" > /app/config.yaml && \
-./validator"]
+ENTRYPOINT ["sh", "-c", "echo \"email:\n  imap: \\\"${EMAIL_IMAP}\\\"\n  login: \\\"${EMAIL_LOGIN}\\\"\n  password: \\\"${EMAIL_PASSWORD}\\\"\n  mailbox: \\\"${EMAIL_MAILBOX}\\\"\\ntargetFrom: \\\"${TARGET_FROM}\\\"\\ntargetSubject: \\\"${TARGET_SUBJECT}\\\"\" > /app/config.yaml && ./validator"]
